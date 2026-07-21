@@ -1,0 +1,14 @@
+Django==4.2.16
+asgiref==3.8.1
+sqlparse==0.5.1
+pytz==2024.1
+
+# Production deployment
+dj-database-url==2.2.0
+psycopg[binary]==3.2.13
+whitenoise==6.7.0
+python-decouple==3.8
+
+# Media storage (Cloudinary)
+cloudinary==1.41.0
+django-cloudinary-storage==0.3.0
