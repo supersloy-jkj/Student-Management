@@ -133,9 +133,15 @@ CLOUDINARY_STORAGE = {
     'API_KEY': config('CLOUDINARY_API_KEY', default=''),
     'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
 }
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # only used if DEBUG and static() below serves it
+
+# Use the local media folder while developing. This lets staff add or update
+# students even when Cloudinary credentials have not been configured yet.
+if DEBUG:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+else:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
 #For Custom USER

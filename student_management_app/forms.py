@@ -48,6 +48,16 @@ class AddStudentForm(forms.Form):
     # session_end_year = forms.DateField(label="Session End", widget=DateInput(attrs={"class":"form-control"}))
     profile_pic = forms.FileField(label="Profile Pic", required=False, widget=forms.FileInput(attrs={"class":"form-control"}))
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['course_id'].choices = [
+            (course.id, course.course_name) for course in Courses.objects.all()
+        ]
+        self.fields['session_year_id'].choices = [
+            (session.id, f"{session.session_start_year} to {session.session_end_year}")
+            for session in SessionYearModel.objects.all()
+        ]
+
 
 
 class EditStudentForm(forms.Form):
@@ -90,3 +100,13 @@ class EditStudentForm(forms.Form):
     # session_start_year = forms.DateField(label="Session Start", widget=DateInput(attrs={"class":"form-control"}))
     # session_end_year = forms.DateField(label="Session End", widget=DateInput(attrs={"class":"form-control"}))
     profile_pic = forms.FileField(label="Profile Pic", required=False, widget=forms.FileInput(attrs={"class":"form-control"}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['course_id'].choices = [
+            (course.id, course.course_name) for course in Courses.objects.all()
+        ]
+        self.fields['session_year_id'].choices = [
+            (session.id, f"{session.session_start_year} to {session.session_end_year}")
+            for session in SessionYearModel.objects.all()
+        ]

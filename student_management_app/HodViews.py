@@ -5,6 +5,7 @@ from django.core.files.storage import default_storage #To upload Profile Picture
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
+from django.db import IntegrityError, transaction
 import json
 
 from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, SessionYearModel, FeedBackStudent, FeedBackStaffs, LeaveReportStudent, LeaveReportStaff, Attendance, AttendanceReport
@@ -348,38 +349,37 @@ def add_student_save(request):
             course_id = form.cleaned_data['course_id']
             gender = form.cleaned_data['gender']
 
-            # Getting Profile Pic first
-            # First Check whether the file is selected or not
-            # Upload only if file is selected
-            if len(request.FILES) != 0:
-                profile_pic = request.FILES['profile_pic']
-                fs = default_storage
-                filename = fs.save(profile_pic.name, profile_pic)
-                profile_pic_url = fs.url(filename)
-            else:
-                profile_pic_url = None
-
-
             try:
-                user = CustomUser.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name, user_type=3)
-                user.students.address = address
-
-                course_obj = Courses.objects.get(id=course_id)
-                user.students.course_id = course_obj
-
-                session_year_obj = SessionYearModel.objects.get(id=session_year_id)
-                user.students.session_year_id = session_year_obj
-
-                user.students.gender = gender
-                user.students.profile_pic = profile_pic_url
-                user.save()
+                with transaction.atomic():
+                    course_obj = Courses.objects.get(id=course_id)
+                    session_year_obj = SessionYearModel.objects.get(id=session_year_id)
+                    user = CustomUser.objects.create_user(
+                        username=username,
+                        password=password,
+                        email=email,
+                        first_name=first_name,
+                        last_name=last_name,
+                        user_type=3,
+                    )
+                    Students.objects.create(
+                        admin=user,
+                        address=address,
+                        course_id=course_obj,
+                        session_year_id=session_year_obj,
+                        gender=gender,
+                        profile_pic=request.FILES.get('profile_pic', ''),
+                    )
                 messages.success(request, "Student Added Successfully!")
                 return redirect('add_student')
-            except:
-                messages.error(request, "Failed to Add Student!")
+            except IntegrityError:
+                messages.error(request, "A student with this username already exists.")
+                return redirect('add_student')
+            except (Courses.DoesNotExist, SessionYearModel.DoesNotExist):
+                messages.error(request, "Select a valid course and session year before adding a student.")
                 return redirect('add_student')
         else:
-            return redirect('add_student')
+            messages.error(request, "Please correct the highlighted student details.")
+            return render(request, 'hod_template/add_student_template.html', {'form': form})
 
 
 def manage_student(request):
@@ -789,6 +789,5 @@ def staff_profile(request):
 
 def student_profile(requtest):
     pass
-
 
 
