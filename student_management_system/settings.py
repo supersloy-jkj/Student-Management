@@ -13,14 +13,28 @@ SECRET_KEY = config('SECRET_KEY', default='(i#*06f#keydy_fh17bf=$0f6v)^wr^l7*u4g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+# Vercel assigns each deployment a ``*.vercel.app`` host.  Keep the actual
+# production hostname in ALLOWED_HOSTS, with this safe fallback for preview
+# deployments.
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='.vercel.app,localhost,127.0.0.1',
+    cast=Csv(),
+)
 
 # Vercel deployments live under *.vercel.app plus your own domain
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
-    default='https://*.vercel.app',
+    default='https://*.vercel.app,http://localhost,http://127.0.0.1',
     cast=Csv(),
 )
+
+# Vercel terminates HTTPS before forwarding the request to this WSGI app.
+# Without this Django can validate a POST against the internal HTTP request
+# instead of the browser's HTTPS origin, which results in a CSRF 403.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
 
 
 # Application definition
